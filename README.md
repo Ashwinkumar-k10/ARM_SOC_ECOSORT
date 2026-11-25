@@ -69,7 +69,7 @@ Single public datasets fail on deformed, soiled, or Indian household waste (`Tra
 | **Composite (Ours: 70 / 20 / 10)** | **`91%`** | **`92%`** | **`85%`** | **Best real-world generalization** |
 
 ### 3.2 Vision Backbone & Classic CNN Ablation (`MobileNetV3-Small` vs. `ResNet-18`, `EfficientNet-B0`, `MobileNetV3-Large`)
-![Vision Model Ablation on Raspberry Pi 5](../assets/model_ablation_comparison.png)
+![Vision Model Ablation on Raspberry Pi 5](docs/figures/model_ablation_comparison.png)
 
 | Vision Backbone / Variant | Params / INT8 Size | Test / Val Acc | Pi 5 Latency | SWM 2026 Compliance | Battery Recall | Verdict |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
