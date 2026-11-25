@@ -144,13 +144,18 @@ ARM_SOC_ECOSORT/
 
 ## 7. Quickstart
 
-### A. Export Llama 3.2 1B INT8 Binary (`1,433.0 MB`)
-*(Excluded from Git due to GitHub's 100 MB file limit; regenerate in one command with a Hugging Face Read token):*
+### A. Download Pre-Exported Llama 3.2 1B INT8 (`1,433.0 MB`)
+*(Excluded from Git due to GitHub's 100 MB limit — download in one command with automatic SHA-256 verification):*
 ```bash
 pip install -r requirements.txt
-export HF_TOKEN="hf_your_token_here"   # PowerShell: $env:HF_TOKEN="hf_your_token_here"
-python models/export_llama_executorch.py
+python models/download_llama_model.py
 ```
+- **Direct Google Drive Link:** [Download `llama3_2_1b_int8.pte`](https://drive.google.com/file/d/1nsRVUEiAzADBwbuycSLUVyXbH8gPX31F/view?usp=sharing) (`SHA-256: f08c9e7b1c71e45a1a637c72a3fb2705fc74caddfad82261e6f57189219344a5`)
+- **Or re-export from Meta Hugging Face checkpoint:**
+  ```bash
+  export HF_TOKEN="hf_your_token_here"
+  python models/export_llama_executorch.py
+  ```
 
 ### B. Run the Evaluation Dashboard & Edge Server (Laptop)
 ```bash
