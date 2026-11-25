@@ -119,7 +119,19 @@ ARM_SOC_ECOSORT/
 │   ├── vision_benchmark_30.json               # Verified benchmark_30 results
 │   ├── ablate_llama_quantization.py           # Llama quantization ablation script
 │   └── llama_quantization_ablation.json       # Ablation results
+├── index.html                                 # Interactive UI showcase & mobile frame switcher
+├── screens/                                   # Segregated Commercial UI Screens
+│   ├── home/index.html                        # Home dashboard & status metrics
+│   ├── camera-scanner/index.html              # Live Edge AI camera viewfinder
+│   ├── item-details/index.html                # SWM 2026 classification & bin routing
+│   └── eco-assistant/index.html               # On-device conversational environmental guide
 └── docs/
+    ├── DESIGN.md                              # EcoSort Commercial Flagship Design System
+    ├── screenshots/                           # High-res UI mockups & previews
+    │   ├── home.png
+    │   ├── camera-scanner.png
+    │   ├── item-details.png
+    │   └── eco-assistant.png
     ├── ecosort_ieee_dual_architecture.png     # IEEE dual-platform architecture diagram
     ├── ARM_5_STEP_ENGINEERING_ARCHITECTURE.md # 5-step Arm ExecuTorch engineering guide
     ├── MOBILE_HANDOFF_PACKAGE.md              # Android on-phone ExecuTorch integration contract
@@ -159,3 +171,27 @@ python3 src/pi5_edge_server.py --port 8080
 
 ### E. Deploy on Android Smartphone (On-Phone Inference)
 See [`docs/MOBILE_HANDOFF_PACKAGE.md`](docs/MOBILE_HANDOFF_PACKAGE.md) and [`docs/ANDROID_APP_DEVELOPMENT_GUIDE.md`](docs/ANDROID_APP_DEVELOPMENT_GUIDE.md) for copying `waste_classifier_int8.pte`, `llama3_2_1b_int8.pte`, `tokenizer.model`, and `swm2026.yaml` into the Android ExecuTorch AAR app.
+
+---
+
+## 8. Commercial Ecosystem UI & Mobile Design System
+
+The segregated UI layer provides an authoritative, commercial-grade interface for edge sorting kiosks and mobile apps. Open [`index.html`](index.html) in any modern browser for an interactive mobile device frame showcase.
+
+| **1. Home Dashboard** | **2. Live Camera Scanner** |
+|:---:|:---:|
+| <img src="docs/screenshots/home.png" width="340" alt="Home Dashboard" /> | <img src="docs/screenshots/camera-scanner.png" width="340" alt="Live Camera Scanner" /> |
+| **Personal metrics, on-device AI readiness, & primary scan trigger** | **Minimalist reticle viewfinder with real-time on-device classification** |
+
+| **3. Classification Details** | **4. Local Eco Assistant** |
+|:---:|:---:|
+| <img src="docs/screenshots/item-details.png" width="340" alt="Item Details" /> | <img src="docs/screenshots/eco-assistant.png" width="340" alt="Eco Assistant" /> |
+| **SWM 2026 statutory bin mapping, purity scoring, & preparation tips** | **100% offline conversational guidance powered by local edge intelligence** |
+
+- **Design Specifications**: Documented in [`docs/DESIGN.md`](docs/DESIGN.md) covering typography (Hanken Grotesk + Inter), structural spatial rhythms, and semantic color tokens.
+- **Standalone Screen Access**:
+  - Home: [`screens/home/index.html`](screens/home/index.html)
+  - Camera Scanner: [`screens/camera-scanner/index.html`](screens/camera-scanner/index.html)
+  - Classification Details: [`screens/item-details/index.html`](screens/item-details/index.html)
+  - Eco Assistant: [`screens/eco-assistant/index.html`](screens/eco-assistant/index.html)
+

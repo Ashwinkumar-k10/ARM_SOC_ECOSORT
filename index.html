@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoSort Commercial Ecosystem — Interactive UI Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: "#00241d",
+              container: "#0d3b31",
+              secondary: "#006d30",
+              surface: "#f7f9ff",
+              surfaceContainer: "#e5effc",
+              outline: "#717975",
+              accent: "#92f5a4"
+            }
+          },
+          fontFamily: {
+            headline: ["Hanken Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .device-shadow {
+      box-shadow: 0 25px 60px -15px rgba(0, 36, 29, 0.25), 0 0 0 12px #1e293b, 0 0 0 14px #334155;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-body min-h-screen flex flex-col">
+
+  <!-- Top Showcase Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-900/80 border border-emerald-700/50 flex items-center justify-center text-emerald-400">
+          <span class="material-symbols-outlined text-[24px]">recycling</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-headline font-bold text-lg text-white tracking-tight">EcoSort Commercial Ecosystem</span>
+            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ARM SoC Ready
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Edge AI On-Device Waste Segregation Architecture</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="docs/DESIGN.md" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm text-slate-300 font-medium transition-colors flex items-center gap-1.5 border border-slate-700">
+          <span class="material-symbols-outlined text-[18px]">palette</span>
+          <span class="hidden md:inline">Design System</span>
+        </a>
+        <a href="https://github.com/Ashwinkumar-k10/ARM_SOC_ECOSORT" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-xs sm:text-sm text-white font-medium transition-colors flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-[18px]">code</span>
+          <span>GitHub Repo</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Controls & Screen Tab Switcher -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4 w-full">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Screen Tabs -->
+      <div class="flex items-center gap-1.5 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto">
+        <button onclick="setScreen('home')" id="tab-home" class="screen-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 bg-emerald-800 text-white shadow-sm whitespace-nowrap">
+          <span class="material-symbols-outlined text-[18px]">grid_view</span>
+          <span>1. Home Dashboard</span>
+        </button>
+        <button onclick="setScreen('camera-scanner')" id="tab-camera-scanner" class="screen-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap">
+          <span class="material-symbols-outlined text-[18px]">center_focus_strong</span>
+          <span>2. Live Camera Scanner</span>
+        </button>
+        <button onclick="setScreen('item-details')" id="tab-item-details" class="screen-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap">
+          <span class="material-symbols-outlined text-[18px]">verified</span>
+          <span>3. Classification Details</span>
+        </button>
+        <button onclick="setScreen('eco-assistant')" id="tab-eco-assistant" class="screen-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap">
+          <span class="material-symbols-outlined text-[18px]">psychology</span>
+          <span>4. Eco Assistant</span>
+        </button>
+      </div>
+
+      <!-- Device Viewport Toggle & Fullscreen -->
+      <div class="flex items-center gap-2 self-end md:self-auto">
+        <button onclick="toggleDeviceMode('mobile')" id="btn-mode-mobile" class="p-2 rounded-lg bg-slate-800 text-emerald-400 hover:bg-slate-700 transition-colors" title="Mobile Frame View">
+          <span class="material-symbols-outlined text-[20px]">smartphone</span>
+        </button>
+        <button onclick="toggleDeviceMode('full')" id="btn-mode-full" class="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Full Width View">
+          <span class="material-symbols-outlined text-[20px]">tablet</span>
+        </button>
+        <button onclick="openStandalone()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 border border-slate-700" title="Open Standalone URL">
+          <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+          <span>Open Fullscreen</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Device Preview Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex-grow flex flex-col items-center justify-center w-full">
+    <div id="device-wrapper" class="w-full max-w-[420px] transition-all duration-300 flex flex-col items-center">
+      
+      <!-- Realistic Device Outer Bezel -->
+      <div id="device-bezel" class="device-shadow rounded-[42px] bg-slate-900 p-3 w-full border border-slate-700/60 relative">
+        <!-- Top Speaker Notch & Sensor -->
+        <div class="w-28 h-4 bg-slate-950 rounded-b-xl mx-auto mb-2 flex items-center justify-center gap-2">
+          <div class="w-10 h-1 bg-slate-800 rounded-full"></div>
+          <div class="w-2 h-2 bg-slate-900 rounded-full border border-slate-800"></div>
+        </div>
+
+        <!-- iframe Screen Container -->
+        <div class="rounded-[32px] overflow-hidden bg-white relative w-full h-[812px] shadow-inner">
+          <iframe id="screen-frame" src="screens/home/index.html" class="w-full h-full border-0 select-none"></iframe>
+        </div>
+
+        <!-- Home Indicator Bar -->
+        <div class="w-32 h-1 bg-slate-700 rounded-full mx-auto mt-2.5"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Feature Grid & Design Tokens Summary -->
+  <footer class="border-t border-slate-800 bg-slate-900 mt-12 py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-emerald-400 font-headline font-semibold">
+            <span class="material-symbols-outlined text-[20px]">memory</span>
+            <span>ARM SoC Integration</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Architected for on-device edge neural accelerators (NPU/Cortex-M/A). Zero cloud latency requirement for real-time sorting.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-emerald-400 font-headline font-semibold">
+            <span class="material-symbols-outlined text-[20px]">center_focus_strong</span>
+            <span>Optical Vision Capture</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Minimalist reticle viewfinder with live on-device classification pills: Ready, Identified, and Uncertain fallback states.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-emerald-400 font-headline font-semibold">
+            <span class="material-symbols-outlined text-[20px]">delete_sweep</span>
+            <span>4-Stream Sorting</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Calibrated semantic markers for Dry Recyclable, Compost Organic, Landfill Waste, and Hazardous streams.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 text-emerald-400 font-headline font-semibold">
+            <span class="material-symbols-outlined text-[20px]">menu_book</span>
+            <span>Design Philosophy</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Refined Minimalist Functionalism: Hanken Grotesk & Inter typography, deliberate whitespace, and zero sci-fi clutter.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <p>© 2026 EcoSort Commercial Flagship. Open-source under MIT License.</p>
+        <div class="flex items-center gap-4">
+          <a href="screens/home/index.html" class="hover:text-slate-300">Home Screen</a>
+          <a href="screens/camera-scanner/index.html" class="hover:text-slate-300">Scanner</a>
+          <a href="screens/item-details/index.html" class="hover:text-slate-300">Item Details</a>
+          <a href="screens/eco-assistant/index.html" class="hover:text-slate-300">Eco Assistant</a>
+          <a href="docs/DESIGN.md" class="hover:text-slate-300">DESIGN.md</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let currentScreen = 'home';
+    const frame = document.getElementById('screen-frame');
+
+    const screens = {
+      'home': 'screens/home/index.html',
+      'camera-scanner': 'screens/camera-scanner/index.html',
+      'item-details': 'screens/item-details/index.html',
+      'eco-assistant': 'screens/eco-assistant/index.html'
+    };
+
+    function setScreen(screenName) {
+      if (!screens[screenName]) return;
+      currentScreen = screenName;
+      frame.src = screens[screenName];
+
+      document.querySelectorAll('.screen-tab').forEach(tab => {
+        tab.className = "screen-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 whitespace-nowrap";
+      });
+
+      const activeTab = document.getElementById(`tab-${screenName}`);
+      if (activeTab) {
+        activeTab.className = "screen-tab px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 bg-emerald-800 text-white shadow-sm whitespace-nowrap";
+      }
+    }
+
+    function toggleDeviceMode(mode) {
+      const wrapper = document.getElementById('device-wrapper');
+      const bezel = document.getElementById('device-bezel');
+      const btnMobile = document.getElementById('btn-mode-mobile');
+      const btnFull = document.getElementById('btn-mode-full');
+
+      if (mode === 'full') {
+        wrapper.className = "w-full max-w-4xl transition-all duration-300 flex flex-col items-center";
+        btnFull.className = "p-2 rounded-lg bg-slate-800 text-emerald-400 hover:bg-slate-700 transition-colors";
+        btnMobile.className = "p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors";
+      } else {
+        wrapper.className = "w-full max-w-[420px] transition-all duration-300 flex flex-col items-center";
+        btnMobile.className = "p-2 rounded-lg bg-slate-800 text-emerald-400 hover:bg-slate-700 transition-colors";
+        btnFull.className = "p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors";
+      }
+    }
+
+    function openStandalone() {
+      if (screens[currentScreen]) {
+        window.open(screens[currentScreen], '_blank');
+      }
+    }
+  </script>
+</body>
+</html>
