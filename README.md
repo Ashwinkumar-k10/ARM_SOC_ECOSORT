@@ -157,15 +157,19 @@ python models/download_llama_model.py
   python models/export_llama_executorch.py
   ```
 
-### B. Run the Evaluation Dashboard & Edge Server (Laptop)
+### B. Terminal Check (CLI Only — No UI)
 ```bash
-python src/pi5_edge_server.py --port 8080
-# Open http://localhost:8080 in your browser
+# Single image + Llama 3.2 1B INT8 advice in terminal
+python src/cli_check.py --image benchmark_30/item_01_battery_01.jpg
+
+# Full 30-image benchmark_30 verification in terminal
+python src/cli_check.py --batch30
 ```
 
-### C. Run Full `benchmark_30` Verification
+### C. Web UI Dashboard (Separate UI Launcher)
 ```bash
-python benchmarks/benchmark_pi5_soc.py
+python src/ui_dashboard.py --port 8080
+# Auto-opens http://localhost:8080 in your browser
 ```
 
 ### D. Deploy on Raspberry Pi 5 (Arm Cortex-A76)
