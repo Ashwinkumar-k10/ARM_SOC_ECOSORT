@@ -1,0 +1,11 @@
+# EcoSort-Edge 2.0 Dependencies (Laptop & Raspberry Pi 5)
+torch>=2.5.0
+torchvision>=0.20.0
+executorch>=1.0.0
+torchao>=0.8.0
+pytorch-tokenizers>=0.1.0
+huggingface-hub>=0.25.0
+opencv-python>=4.9.0
+numpy>=1.26.0
+Pillow>=10.0.0
+PyYAML>=6.0.1

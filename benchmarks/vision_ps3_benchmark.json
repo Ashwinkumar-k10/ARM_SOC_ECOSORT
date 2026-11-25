@@ -1,0 +1,115 @@
+{
+  "model": "waste_classifier_int8.pte",
+  "load_latency_ms": 6.69,
+  "avg_inference_ms": 9.35,
+  "p95_inference_ms": 10.43,
+  "samples": 10,
+  "telemetry": {
+    "platform": "win32",
+    "temp_c": null,
+    "volts_v": null,
+    "power_w_est": null
+  },
+  "results": [
+    {
+      "image": "Img1.png",
+      "predicted_class": "multi_layer_packaging",
+      "confidence": 0.3582,
+      "entropy": 1.5439,
+      "stream": "dry",
+      "bin_name": "Blue Bin (Dry Recyclable)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 9.91
+    },
+    {
+      "image": "Img10.png",
+      "predicted_class": "food_waste",
+      "confidence": 0.9196,
+      "entropy": 0.4216,
+      "stream": "wet",
+      "bin_name": "Green Bin (Wet Organic)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 9.23
+    },
+    {
+      "image": "Img2.png",
+      "predicted_class": "paper",
+      "confidence": 0.4102,
+      "entropy": 1.701,
+      "stream": "dry",
+      "bin_name": "Blue Bin (Dry Recyclable)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 8.48
+    },
+    {
+      "image": "Img3.png",
+      "predicted_class": "battery",
+      "confidence": 0.3424,
+      "entropy": 1.6125,
+      "stream": "special_care",
+      "bin_name": "Red Bin (Special-Care / Domestic Hazardous)",
+      "status": "HAZARD_INTERCEPTED",
+      "inference_ms": 10.01
+    },
+    {
+      "image": "Img4.png",
+      "predicted_class": "food_waste",
+      "confidence": 0.9546,
+      "entropy": 0.2683,
+      "stream": "wet",
+      "bin_name": "Green Bin (Wet Organic)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 6.87
+    },
+    {
+      "image": "Img5.png",
+      "predicted_class": "paper",
+      "confidence": 0.376,
+      "entropy": 1.8723,
+      "stream": "dry",
+      "bin_name": "Blue Bin (Dry Recyclable)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 10.53
+    },
+    {
+      "image": "Img6.png",
+      "predicted_class": "food_waste",
+      "confidence": 0.8618,
+      "entropy": 0.6276,
+      "stream": "wet",
+      "bin_name": "Green Bin (Wet Organic)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 10.09
+    },
+    {
+      "image": "Img7.png",
+      "predicted_class": "plastic_bottle",
+      "confidence": 0.4115,
+      "entropy": 1.5897,
+      "stream": "dry",
+      "bin_name": "Blue Bin (Dry Recyclable)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 9.36
+    },
+    {
+      "image": "Img8.png",
+      "predicted_class": "battery",
+      "confidence": 0.764,
+      "entropy": 0.9236,
+      "stream": "special_care",
+      "bin_name": "Red Bin (Special-Care / Domestic Hazardous)",
+      "status": "HAZARD_INTERCEPTED",
+      "inference_ms": 10.31
+    },
+    {
+      "image": "Img9.png",
+      "predicted_class": "plastic_bottle",
+      "confidence": 0.9848,
+      "entropy": 0.1005,
+      "stream": "dry",
+      "bin_name": "Blue Bin (Dry Recyclable)",
+      "status": "STATUTORY_ROUTED",
+      "inference_ms": 8.69
+    }
+  ]
+}

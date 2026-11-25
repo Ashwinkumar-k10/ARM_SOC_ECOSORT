@@ -1,0 +1,54 @@
+[
+  {
+    "variant": "BF16 Baseline",
+    "pte_size_mb": null,
+    "cosine_vs_bf16": 1.0,
+    "top1_agreement_pct": 100.0,
+    "avg_ttft_ms": 1670.5,
+    "avg_tok_per_sec": 1.01,
+    "responses": {
+      "plastic_bottle": "To prepare the plastic bottle, rinse it with water, and then flatten it into a thin sheet. This will help the",
+      "battery_hazard": "",
+      "greasy_cardboard": ""
+    }
+  },
+  {
+    "variant": "8da4w (G=128)",
+    "pte_size_mb": 765.3,
+    "cosine_vs_bf16": 0.9059,
+    "top1_agreement_pct": 0.0,
+    "avg_ttft_ms": 4058.6,
+    "avg_tok_per_sec": 0.15,
+    "responses": {
+      "plastic_bottle": "Here's a step-by-step guide to preparing the plastic bottle:\n\n1. Remove any labels or caps.\n2. Cut",
+      "battery_hazard": "",
+      "greasy_cardboard": ""
+    }
+  },
+  {
+    "variant": "8da4w (G=32)",
+    "pte_size_mb": 820.5,
+    "cosine_vs_bf16": 0.9208,
+    "top1_agreement_pct": 33.3,
+    "avg_ttft_ms": 4301.7,
+    "avg_tok_per_sec": 0.14,
+    "responses": {
+      "plastic_bottle": "To prepare the plastic bottle, I would rinse it with water, remove any labels or caps, and then sort it into",
+      "battery_hazard": "",
+      "greasy_cardboard": ""
+    }
+  },
+  {
+    "variant": "INT8 (XNNPACK PT2E Dynamic)",
+    "pte_size_mb": 1433.0,
+    "cosine_vs_bf16": 0.988,
+    "top1_agreement_pct": 100.0,
+    "avg_ttft_ms": 1707.1,
+    "avg_tok_per_sec": 0.32,
+    "responses": {
+      "plastic_bottle": "To prepare the plastic bottle, rinse it with water, and then flatten it into a thin sheet. This will help the",
+      "battery_hazard": "",
+      "greasy_cardboard": ""
+    }
+  }
+]
