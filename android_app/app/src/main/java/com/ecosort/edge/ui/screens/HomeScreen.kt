@@ -1,6 +1,7 @@
 package com.ecosort.edge.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,12 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ecosort.edge.R
 import com.ecosort.edge.domain.model.ScanRecord
 import com.ecosort.edge.domain.model.SocTelemetry
 import com.ecosort.edge.domain.model.StreamType
+import com.ecosort.edge.ui.EcoSortViewModel
 import com.ecosort.edge.ui.theme.EcoColors
 
 @Composable
@@ -52,9 +56,21 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text("EcoSort-Edge", style = MaterialTheme.typography.headlineLarge)
-                    Text("SWM 2026 On-Device Segregation", style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ecosort_logo),
+                        contentDescription = "EcoSort Logo",
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+                    Column {
+                        Text("EcoSort-Edge", style = MaterialTheme.typography.headlineLarge, fontSize = 22.sp)
+                        Text("SWM 2026 On-Device Segregation", style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
                 Surface(
                     shape = CircleShape,
@@ -144,9 +160,9 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .height(54.dp)
                 ) {
-                    Icon(Icons.Outlined.CameraAlt, contentDescription = null)
+                    Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = Color.White)
                     Spacer(Modifier.width(10.dp))
-                    Text("Scan Waste Item", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Scan Waste Item", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -209,7 +225,7 @@ fun HomeScreen(
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                rec.predictedClass.replace("_", " ").replaceFirstChar { it.uppercase() },
+                                EcoSortViewModel.formatClassName(rec.predictedClass),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontSize = 14.sp
                             )

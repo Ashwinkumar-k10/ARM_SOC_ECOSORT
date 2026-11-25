@@ -248,9 +248,14 @@ fun DetailScreen(
             colors = ButtonDefaults.buttonColors(containerColor = EcoColors.ForestPrimary, contentColor = Color.White),
             modifier = Modifier.fillMaxWidth().height(52.dp)
         ) {
-            Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = Color.White)
             Spacer(Modifier.width(10.dp))
-            Text(if (llamaAvailable) "Ask Follow-Up Question" else "Import Llama 3.2 INT8", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (llamaAvailable) "Ask Follow-Up Question" else "Import Llama 3.2 INT8",
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }

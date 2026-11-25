@@ -203,6 +203,7 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
 
     companion object {
         fun formatClassName(raw: String): String =
-            raw.split("_").joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+            if (raw == "battery") "Electronic Waste"
+            else raw.split("_").joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
     }
 }
