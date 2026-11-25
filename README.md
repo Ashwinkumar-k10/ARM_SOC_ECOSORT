@@ -118,6 +118,17 @@ On physical **Raspberry Pi 5 (`cpp_llama_main` compiled with XNNPACK + KleidiAI)
 
 ![Pi 5 Llama Throughput and SoC Telemetry](docs/figures/fig3_pi5_llama_and_soc.png)
 
+### 4.3 Confusion Matrix, Per-Class Metrics & Training Curves
+All 6 fine-grained confusions on `benchmark_30` occur strictly *within the same statutory bin* (`plastic_bottle → cardboard` in Blue Bin, `multi_layer_packaging → metal_can` in Blue Bin, `vegetable_scrap → food_waste` in Green Bin), preserving **100.0% SWM 2026 compliance** and **100.0% battery hazard recall**.
+
+| **Confusion Matrix (9 Waste Classes)** | **Per-Class Precision / Recall / F1** |
+| :---: | :---: |
+| ![Confusion Matrix](docs/figures/confusion_matrix.png) | ![Per-Class Performance](docs/figures/per_class_performance.png) |
+
+| **Training & Progressive Resolution Curves (`224×224 → 256×256`)** | **Stratified 10-Sample Confidence & Entropy Gate (`H = 2.00`)** |
+| :---: | :---: |
+| ![Training Curves](docs/figures/training_curves.png) | ![Confidence & Entropy Gate](docs/figures/fig4_per_class_confidence_entropy.png) |
+
 ---
 
 ## 5. Android Mobile Implementation & Optimizations (`android_app/`)
