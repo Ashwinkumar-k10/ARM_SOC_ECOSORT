@@ -32,7 +32,7 @@ class LlamaExecuTorchEngine:
         model_path: Optional[Path] = None,
         tokenizer_path: Optional[Path] = None,
         llama_main_bin: Optional[str] = None,
-        max_new_tokens: int = 42,
+        max_new_tokens: int = 44,
         temperature: float = 0.0,
         cache_size: int = 64,
     ):
@@ -95,26 +95,25 @@ class LlamaExecuTorchEngine:
     ) -> tuple:
         """Construct grounded (system_msg, user_msg) for Llama 3.2 Instruct."""
         item = decision.get("predicted_class", "unknown").replace("_", " ")
-        conf = decision.get("confidence", 0.0) * 100.0
-        bin_name = decision.get("bin_name", "Grey Bin")
-        hazard = decision.get("hazard_level", "none")
-        flags = ", ".join(decision.get("flags", [])) or "standard"
-
-        task = user_question.strip() if user_question else (
-            "Give concise steps to prepare this item for disposal, recycling options, and environmental impact."
+        stream = decision.get("stream", "dry")
+        bin_label = (
+            "Red Bin (Special-Care Collection)"
+            if stream == "special_care"
+            else decision.get("bin_name", "Grey Bin")
         )
+
+        if user_question and user_question.strip():
+            task = user_question.strip()
+        elif stream == "special_care":
+            task = "List 2 brief safety steps before placing this battery in the Red Bin (keep dry, tape terminals, never crush)."
+        else:
+            task = "List 2 brief steps to prepare this item for its assigned bin."
 
         system_msg = (
-            "You are EcoSort-Edge, an offline waste-segregation advisor. "
-            "Never contradict the mandatory bin assignment. "
-            f"Answer clearly in language='{language}' in under 45 words."
+            "You are EcoSort-Edge, a household recycling helper. "
+            f"Reply directly in under 35 words without repeating the prompt. Language: {language}."
         )
-        user_msg = (
-            f"Item: {item} ({conf:.1f}%)\n"
-            f"Mandatory Bin: {bin_name}\n"
-            f"Hazard: {hazard} | Flags: {flags}\n"
-            f"Question: {task}"
-        )
+        user_msg = f"Item: {item}. Assigned Bin: {bin_label}. {task}"
         return system_msg, user_msg
 
     @staticmethod
@@ -168,7 +167,7 @@ class LlamaExecuTorchEngine:
                 f"--model_path={self.model_path}",
                 f"--tokenizer_path={self.tokenizer_path}",
                 f"--prompt={prompt}",
-                f"--seq_len=256",
+                f"--seq_len=192",
                 f"--temperature={self.temperature}",
             ]
             proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -186,7 +185,7 @@ class LlamaExecuTorchEngine:
             sys_msg, usr_msg = self.build_grounded_messages(decision, user_question, language)
             ids = self._encode_llama3_chat(sys_msg, usr_msg)
             gen = []
-            with torch.no_grad():
+            with torch.inference_mode():
                 logits = self._eager_model(
                     torch.tensor([ids], dtype=torch.long),
                     {"input_pos": torch.tensor([0], dtype=torch.long)},
