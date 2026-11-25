@@ -17,34 +17,73 @@ class LlamaAdvisor(private val context: Context) {
 
     fun findModelFile(): File? {
         val internal = File(context.filesDir, MODEL_FILENAME)
-        if (internal.exists() && internal.length() > 100_000_000L) return internal
+        if (internal.exists() && internal.length() > MIN_MODEL_BYTES) return internal
+
+        val extDir = context.getExternalFilesDir(null)
+        if (extDir != null) {
+            val extFile = File(extDir, MODEL_FILENAME)
+            if (extFile.exists() && extFile.canRead() && extFile.length() > MIN_MODEL_BYTES) return extFile
+        }
 
         val downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val dlFile = File(downloads, MODEL_FILENAME)
-        if (dlFile.exists() && dlFile.canRead() && dlFile.length() > 100_000_000L) return dlFile
+        if (dlFile.exists() && dlFile.canRead() && dlFile.length() > MIN_MODEL_BYTES) return dlFile
 
         return null
     }
 
     fun isModelAvailable(): Boolean = findModelFile() != null
 
-    fun importModelFromUri(uri: Uri): Boolean {
+    fun isLoadedInMemory(): Boolean = llmModule != null
+
+    fun getStatusMessage(): String {
+        val f = findModelFile() ?: return "Not imported yet (select llama3_2_1b_int8.pte, 1.43 GB)"
+        val mb = f.length() / (1024L * 1024L)
+        return if (llmModule != null) {
+            "Verified & Loaded in RAM ($mb MB)"
+        } else {
+            "File Found ($mb MB) — Warming Up..."
+        }
+    }
+
+    fun importModelFromUri(uri: Uri): Pair<Boolean, String> {
         val dest = File(context.filesDir, MODEL_FILENAME)
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            dest.outputStream().use { output ->
-                input.copyTo(output, bufferSize = 1024 * 1024)
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                dest.outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 1024 * 1024)
+                }
+            } ?: return false to "Could not read selected file."
+
+            if (!dest.exists() || dest.length() < MIN_MODEL_BYTES) {
+                val mb = dest.length() / (1024L * 1024L)
+                dest.delete()
+                return false to "Wrong or incomplete file ($mb MB). Expected llama3_2_1b_int8.pte (~1,433 MB)."
             }
-        } ?: return false
-        llmModule = null
-        return dest.exists() && dest.length() > 100_000_000L
+
+            llmModule = null
+            val loaded = ensureLoaded()
+            if (loaded) {
+                val mb = dest.length() / (1024L * 1024L)
+                true to "Imported & Verified ($mb MB)!"
+            } else {
+                false to "Copied file, but ExecuTorch LlmModule failed to load it."
+            }
+        } catch (t: Throwable) {
+            false to "Import failed: ${t.message}"
+        }
     }
 
     @Synchronized
     fun ensureLoaded(): Boolean {
         if (llmModule != null) return true
         val modelFile = findModelFile() ?: return false
-        llmModule = LlmModule(modelFile.absolutePath, tokenizerFile.absolutePath, 0.0f)
-        return true
+        return try {
+            llmModule = LlmModule(modelFile.absolutePath, tokenizerFile.absolutePath, 0.0f)
+            true
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     fun generate(
@@ -55,10 +94,7 @@ class LlamaAdvisor(private val context: Context) {
         onError: (String) -> Unit
     ) {
         if (!ensureLoaded()) {
-            onError(
-                "Llama 3.2 1B INT8 binary ($MODEL_FILENAME, 1.43 GB) is not on this device yet. " +
-                    "Tap 'Import llama3_2_1b_int8.pte' above or push it via adb to ${context.filesDir.absolutePath}."
-            )
+            onError("Llama 3.2 1B INT8 ($MODEL_FILENAME) is not imported yet. Open the Assistant tab to import it.")
             return
         }
 
@@ -69,7 +105,7 @@ class LlamaAdvisor(private val context: Context) {
         try {
             module.generate(
                 prompt,
-                192,
+                72,
                 object : LlmCallback {
                     override fun onResult(result: String) {
                         val cleaned = result.replace("<|eot_id|>", "")
@@ -78,9 +114,7 @@ class LlamaAdvisor(private val context: Context) {
                         }
                     }
 
-                    override fun onStats(stats: String) {
-                        // Stats reported by ExecuTorch native runner
-                    }
+                    override fun onStats(stats: String) {}
                 },
                 false
             )
@@ -116,5 +150,6 @@ class LlamaAdvisor(private val context: Context) {
 
     companion object {
         const val MODEL_FILENAME = "llama3_2_1b_int8.pte"
+        private const val MIN_MODEL_BYTES = 1_000_000_000L
     }
 }

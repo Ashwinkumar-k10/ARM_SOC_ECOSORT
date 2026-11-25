@@ -9,13 +9,15 @@ import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
 import java.io.File
 import kotlin.math.exp
+import kotlin.math.min
 
 data class VisionPrediction(
     val predictedClass: String,
     val confidence: Float,
     val entropy: Float,
     val inferenceMs: Float,
-    val probabilities: FloatArray
+    val probabilities: FloatArray,
+    val croppedBitmap: Bitmap
 )
 
 class VisionClassifier(context: Context) {
@@ -30,8 +32,17 @@ class VisionClassifier(context: Context) {
         module = Module.load(modelFile.absolutePath)
     }
 
-    fun classify(bitmap: Bitmap): VisionPrediction {
-        val resized = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true)
+    fun classify(bitmap: Bitmap, fromCameraReticle: Boolean = true): VisionPrediction {
+        val argb = if (bitmap.config == Bitmap.Config.ARGB_8888) {
+            bitmap
+        } else {
+            bitmap.copy(Bitmap.Config.ARGB_8888, false)
+        }
+
+        // Crop to center square matching the viewfinder reticle so background desk/walls don't dominate
+        val cropped = cropCenterSquare(argb, if (fromCameraReticle) 0.56f else 0.85f)
+        val resized = Bitmap.createScaledBitmap(cropped, INPUT_SIZE, INPUT_SIZE, true)
+
         val pixels = IntArray(INPUT_SIZE * INPUT_SIZE)
         resized.getPixels(pixels, 0, INPUT_SIZE, 0, 0, INPUT_SIZE, INPUT_SIZE)
 
@@ -68,8 +79,16 @@ class VisionClassifier(context: Context) {
             confidence = probs[bestIdx],
             entropy = entropy,
             inferenceMs = inferMs,
-            probabilities = probs
+            probabilities = probs,
+            croppedBitmap = cropped
         )
+    }
+
+    private fun cropCenterSquare(src: Bitmap, fraction: Float): Bitmap {
+        val side = (min(src.width, src.height) * fraction).toInt().coerceAtLeast(64)
+        val x = ((src.width - side) / 2).coerceAtLeast(0)
+        val y = ((src.height - side) / 2).coerceAtLeast(0)
+        return Bitmap.createBitmap(src, x, y, side.coerceAtMost(src.width - x), side.coerceAtMost(src.height - y))
     }
 
     private fun softmax(logits: FloatArray): FloatArray {

@@ -13,7 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecosort.edge.domain.model.ActiveScan
 import com.ecosort.edge.domain.model.ChatMessage
+import com.ecosort.edge.ui.EcoSortViewModel
 import com.ecosort.edge.ui.theme.EcoColors
 
 @Composable
@@ -33,17 +35,16 @@ fun AssistantScreen(
     messages: List<ChatMessage>,
     isGenerating: Boolean,
     llamaAvailable: Boolean,
+    llamaStatusText: String,
+    isImporting: Boolean,
     onAskLlama: (String?) -> Unit,
     onImportModelUri: (android.net.Uri) -> Unit
 ) {
     var inputText by remember { mutableStateOf("") }
-    var isImporting by remember { mutableStateOf(false) }
 
     val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            isImporting = true
             onImportModelUri(uri)
-            isImporting = false
         }
     }
 
@@ -58,7 +59,7 @@ fun AssistantScreen(
             .fillMaxSize()
             .background(EcoColors.Canvas)
     ) {
-        // Header + Context Pill
+        // Header + Context + Model Status Badge
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,7 +67,37 @@ fun AssistantScreen(
                 .padding(horizontal = 20.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Eco Assistant", style = MaterialTheme.typography.headlineMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Eco Assistant", color = EcoColors.TextPrimary, style = MaterialTheme.typography.headlineMedium)
+                Surface(
+                    shape = CircleShape,
+                    color = if (llamaAvailable) EcoColors.EmeraldBg.copy(alpha = 0.35f) else EcoColors.SurfaceCard,
+                    border = BorderStroke(1.dp, if (llamaAvailable) EcoColors.EmeraldBadge else EcoColors.Border)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        if (llamaAvailable) {
+                            Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = EcoColors.EmeraldBadge, modifier = Modifier.size(14.dp))
+                        }
+                        Text(
+                            if (llamaAvailable) "Llama INT8 Ready" else "Model Needed",
+                            color = EcoColors.TextPrimary,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
+            Text(llamaStatusText, color = EcoColors.TextSecondary, fontSize = 12.sp)
+
             if (activeScan != null) {
                 Surface(
                     shape = CircleShape,
@@ -74,7 +105,7 @@ fun AssistantScreen(
                     border = BorderStroke(1.dp, Color(activeScan.decision.colorHex))
                 ) {
                     Text(
-                        "Context: ${activeScan.decision.predictedClass.replace("_", " ")} → ${activeScan.decision.binName}",
+                        "${EcoSortViewModel.formatClassName(activeScan.decision.predictedClass)} → ${activeScan.decision.binName}",
                         color = EcoColors.TextPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -82,13 +113,13 @@ fun AssistantScreen(
                     )
                 }
             } else {
-                Text("Scan an item first to ground Llama 3.2 1B INT8.", style = MaterialTheme.typography.bodyMedium)
+                Text("Scan an item first to ground Llama 3.2 1B INT8.", color = EcoColors.TextSecondary, fontSize = 13.sp)
             }
         }
 
         HorizontalDivider(color = EcoColors.Border)
 
-        if (!llamaAvailable) {
+        if (!llamaAvailable || isImporting) {
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = EcoColors.SurfaceCard,
@@ -96,19 +127,26 @@ fun AssistantScreen(
                 modifier = Modifier.padding(16.dp).fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("On-Device Llama 3.2 1B INT8 Setup", style = MaterialTheme.typography.titleMedium)
+                    Text("Import On-Device Llama 3.2 1B INT8", color = EcoColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Place llama3_2_1b_int8.pte (1.43 GB) in Downloads or tap below to import it for 100% offline ExecuTorch LlmModule inference.",
-                        style = MaterialTheme.typography.bodyMedium
+                        llamaStatusText,
+                        color = EcoColors.TextSecondary,
+                        fontSize = 13.sp
                     )
                     Button(
                         onClick = { modelPicker.launch(arrayOf("*/*")) },
                         enabled = !isImporting,
-                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.ForestPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = EcoColors.ForestPrimary, contentColor = Color.White)
                     ) {
-                        Icon(Icons.Outlined.UploadFile, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(if (isImporting) "Importing..." else "Import llama3_2_1b_int8.pte")
+                        if (isImporting) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                            Spacer(Modifier.width(10.dp))
+                            Text("Copying & Verifying...")
+                        } else {
+                            Icon(Icons.Outlined.UploadFile, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Select llama3_2_1b_int8.pte")
+                        }
                     }
                 }
             }
@@ -141,7 +179,7 @@ fun AssistantScreen(
                             if (msg.latencyMs != null) {
                                 Text(
                                     "ExecuTorch Llama INT8 · ${msg.latencyMs} ms",
-                                    color = EcoColors.TextSecondary,
+                                    color = if (msg.isUser) Color.White.copy(alpha = 0.7f) else EcoColors.TextSecondary,
                                     fontSize = 10.sp
                                 )
                             }
@@ -171,13 +209,13 @@ fun AssistantScreen(
                         border = BorderStroke(1.dp, EcoColors.Border),
                         modifier = Modifier.clickable(enabled = !isGenerating) { onAskLlama(prompt) }
                     ) {
-                        Text(prompt, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp))
+                        Text(prompt, color = EcoColors.TextPrimary, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp))
                     }
                 }
             }
         }
 
-        // Input Bar
+        // High-Contrast Light Input Bar (safe even in System Dark Mode)
         Surface(color = EcoColors.Surface, modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
@@ -187,9 +225,18 @@ fun AssistantScreen(
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = { inputText = it },
-                    placeholder = { Text("Ask about recycling or disposal...", fontSize = 13.sp) },
+                    placeholder = { Text("Ask about recycling or disposal...", color = EcoColors.TextSecondary, fontSize = 13.sp) },
                     singleLine = true,
                     shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = EcoColors.TextPrimary,
+                        unfocusedTextColor = EcoColors.TextPrimary,
+                        focusedContainerColor = EcoColors.Canvas,
+                        unfocusedContainerColor = EcoColors.Canvas,
+                        focusedBorderColor = EcoColors.ForestPrimary,
+                        unfocusedBorderColor = EcoColors.Border,
+                        cursorColor = EcoColors.ForestPrimary
+                    ),
                     modifier = Modifier.weight(1f)
                 )
                 FilledIconButton(
@@ -201,9 +248,14 @@ fun AssistantScreen(
                         }
                     },
                     enabled = activeScan != null && !isGenerating && inputText.isNotBlank(),
-                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = EcoColors.ForestPrimary)
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = EcoColors.ForestPrimary,
+                        contentColor = Color.White,
+                        disabledContainerColor = EcoColors.Border,
+                        disabledContentColor = EcoColors.TextSecondary
+                    )
                 ) {
-                    Icon(Icons.Outlined.Send, contentDescription = "Send")
+                    Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Send")
                 }
             }
         }

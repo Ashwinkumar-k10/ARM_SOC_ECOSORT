@@ -5,11 +5,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,24 +25,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecosort.edge.domain.model.ActiveScan
+import com.ecosort.edge.domain.model.ChatMessage
 import com.ecosort.edge.domain.model.StreamType
+import com.ecosort.edge.ui.EcoSortViewModel
 import com.ecosort.edge.ui.theme.EcoColors
 
 @Composable
 fun DetailScreen(
     activeScan: ActiveScan?,
+    messages: List<ChatMessage>,
+    isGenerating: Boolean,
+    llamaAvailable: Boolean,
+    llamaStatusText: String,
     onBack: () -> Unit,
     onAskAssistant: () -> Unit
 ) {
     if (activeScan == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No item selected", style = MaterialTheme.typography.bodyLarge)
+        Box(modifier = Modifier.fillMaxSize().background(EcoColors.Canvas), contentAlignment = Alignment.Center) {
+            Text("No item selected", color = EcoColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
         }
         return
     }
 
     val dec = activeScan.decision
     val binColor = Color(dec.colorHex)
+    val cleanObjName = EcoSortViewModel.formatClassName(dec.predictedClass)
+    val latestBotMsg = messages.lastOrNull { !it.isUser }
 
     Column(
         modifier = Modifier
@@ -53,53 +63,102 @@ fun DetailScreen(
         // Top Bar
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back", tint = EcoColors.TextPrimary)
             }
-            Text("Classification Result", style = MaterialTheme.typography.headlineMedium)
+            Text("Sorting Result", color = EcoColors.TextPrimary, style = MaterialTheme.typography.headlineMedium)
         }
 
-        // Scanned Image Preview (null for Sanitary Privacy Override)
-        if (activeScan.bitmap != null) {
-            Image(
-                bitmap = activeScan.bitmap.asImageBitmap(),
-                contentDescription = dec.predictedClass,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(210.dp)
-                    .clip(RoundedCornerShape(16.dp))
-            )
-        } else {
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = EcoColors.Surface,
-                border = BorderStroke(1.dp, EcoColors.Border),
-                modifier = Modifier.fillMaxWidth().height(110.dp)
+        // Bold Colored Bin Card + Clear Object Name (Apple-Minimalist Visual)
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = binColor,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("Camera-Free Sanitary Privacy Mode Active", style = MaterialTheme.typography.titleMedium)
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.22f),
+                    modifier = Modifier.size(60.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Outlined.Delete,
+                            contentDescription = "Bin",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        cleanObjName,
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        dec.binName,
+                        color = Color.White.copy(alpha = 0.95f),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        "${(dec.confidence * 100).toInt()}% confidence · ${"%.1f".format(dec.inferenceMs)} ms",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 12.sp
+                    )
                 }
             }
         }
 
-        // Statutory SWM 2026 Bin Banner
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = binColor,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(dec.status.replace("_", " "), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Text(dec.binName, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        // Cropped Object Preview (what Vision INT8 classified)
+        if (activeScan.bitmap != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Image(
+                    bitmap = activeScan.bitmap.asImageBitmap(),
+                    contentDescription = cleanObjName,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(88.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                )
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Reticle Focus Crop", color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(
+                        "Status: ${dec.status.replace("_", " ")} · H = ${"%.2f".format(dec.entropy)}",
+                        color = EcoColors.TextSecondary,
+                        fontSize = 12.sp
+                    )
+                    if (dec.tipEn.isNotBlank()) {
+                        Text(dec.tipEn, color = EcoColors.TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    }
+                }
+            }
+        } else {
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = EcoColors.Surface,
+                border = BorderStroke(1.dp, EcoColors.Border),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
-                    dec.predictedClass.replace("_", " ").replaceFirstChar { it.uppercase() },
-                    color = Color.White.copy(alpha = 0.92f),
-                    fontSize = 14.sp
+                    "Camera-Free Sanitary Privacy Mode Active. Wrap securely before disposal.",
+                    color = EcoColors.TextPrimary,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(16.dp)
                 )
             }
         }
 
-        // Fire-Hazard Interlock Warning
+        // Fire-Hazard Interlock Banner
         if (dec.stream == StreamType.SPECIAL_CARE) {
             Surface(
                 shape = RoundedCornerShape(14.dp),
@@ -113,7 +172,7 @@ fun DetailScreen(
                 ) {
                     Icon(Icons.Outlined.WarningAmber, contentDescription = null, tint = EcoColors.HazardRed)
                     Text(
-                        "Fire-Hazard Interlock: Never place batteries in dry/wet bins. Tape terminals and drop at Red Bin / e-waste.",
+                        "Fire-Hazard Interlock: Keep dry, tape terminals, and place only in the Red Bin.",
                         color = Color(0xFF93000A),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -122,55 +181,76 @@ fun DetailScreen(
             }
         }
 
-        // Telemetry Strip
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            MetricCard("Confidence", "${(dec.confidence * 100).toInt()}%", Modifier.weight(1f))
-            MetricCard("Latency", "${"%.1f".format(dec.inferenceMs)} ms", Modifier.weight(1f))
-            MetricCard("Entropy (H)", "%.2f".format(dec.entropy), Modifier.weight(1f))
-        }
-
-        // Multilingual Statutory Labels (from swm2026.yaml)
+        // Instant On-Device Llama 3.2 1B INT8 Preliminary Steps Card
         Surface(
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(16.dp),
             color = EcoColors.Surface,
             border = BorderStroke(1.dp, EcoColors.Border),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("SWM 2026 Guidance", style = MaterialTheme.typography.titleMedium)
-                if (dec.tipEn.isNotBlank()) Text(dec.tipEn, style = MaterialTheme.typography.bodyLarge)
-                Spacer(Modifier.height(4.dp))
-                dec.labels.forEach { (lang, label) ->
-                    Text("${lang.uppercase()}: $label", style = MaterialTheme.typography.bodyMedium)
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = EcoColors.ForestPrimary, modifier = Modifier.size(18.dp))
+                        Text("On-Device Llama 3.2 Steps", color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    }
+                    if (latestBotMsg?.latencyMs != null) {
+                        Text("${latestBotMsg.latencyMs} ms", color = EcoColors.TextSecondary, fontSize = 11.sp)
+                    }
+                }
+
+                when {
+                    !llamaAvailable -> Text(
+                        "Llama 3.2 1B INT8 not imported yet ($llamaStatusText). Tap below to import it once.",
+                        color = EcoColors.TextSecondary,
+                        fontSize = 13.sp
+                    )
+                    isGenerating && (latestBotMsg == null || latestBotMsg.text.isEmpty()) -> Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = EcoColors.ForestPrimary)
+                        Text("Generating safe preparation steps...", color = EcoColors.TextSecondary, fontSize = 13.sp)
+                    }
+                    latestBotMsg != null -> Text(
+                        latestBotMsg.text,
+                        color = EcoColors.TextPrimary,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp
+                    )
                 }
             }
         }
 
-        // Ask Llama 3.2 1B INT8 Button
+        // Multilingual Labels (from swm2026.yaml)
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = EcoColors.Canvas,
+            border = BorderStroke(1.dp, EcoColors.Border),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Statutory Bin Labels (SWM 2026)", color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                dec.labels.forEach { (lang, label) ->
+                    Text("${lang.uppercase()}: $label", color = EcoColors.TextSecondary, fontSize = 12.sp)
+                }
+            }
+        }
+
+        // Ask Follow-Up in Assistant
         Button(
             onClick = onAskAssistant,
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = EcoColors.ForestPrimary),
-            modifier = Modifier.fillMaxWidth().height(54.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = EcoColors.ForestPrimary, contentColor = Color.White),
+            modifier = Modifier.fillMaxWidth().height(52.dp)
         ) {
             Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
             Spacer(Modifier.width(10.dp))
-            Text("Ask Eco Assistant (Llama 3.2 INT8)", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        }
-    }
-}
-
-@Composable
-private fun MetricCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = EcoColors.Surface,
-        border = BorderStroke(1.dp, EcoColors.Border),
-        modifier = modifier
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(value, style = MaterialTheme.typography.titleMedium, color = EcoColors.ForestPrimary)
-            Text(label, style = MaterialTheme.typography.bodyMedium, fontSize = 11.sp)
+            Text(if (llamaAvailable) "Ask Follow-Up Question" else "Import Llama 3.2 INT8", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

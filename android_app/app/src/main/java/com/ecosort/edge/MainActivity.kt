@@ -42,6 +42,8 @@ class MainActivity : ComponentActivity() {
                 val messages by vm.chatMessages.collectAsState()
                 val isGenerating by vm.isGenerating.collectAsState()
                 val llamaAvailable by vm.llamaAvailable.collectAsState()
+                val llamaStatusText by vm.llamaStatusText.collectAsState()
+                val isImporting by vm.isImporting.collectAsState()
                 val telemetry by vm.telemetry.collectAsState()
 
                 Scaffold(
@@ -57,6 +59,8 @@ class MainActivity : ComponentActivity() {
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = EcoColors.ForestPrimary,
                                         selectedTextColor = EcoColors.ForestPrimary,
+                                        unselectedIconColor = EcoColors.TextSecondary,
+                                        unselectedTextColor = EcoColors.TextSecondary,
                                         indicatorColor = Color(0xFFBEECDD)
                                     )
                                 )
@@ -68,6 +72,8 @@ class MainActivity : ComponentActivity() {
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = EcoColors.ForestPrimary,
                                         selectedTextColor = EcoColors.ForestPrimary,
+                                        unselectedIconColor = EcoColors.TextSecondary,
+                                        unselectedTextColor = EcoColors.TextSecondary,
                                         indicatorColor = Color(0xFFBEECDD)
                                     )
                                 )
@@ -79,6 +85,8 @@ class MainActivity : ComponentActivity() {
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = EcoColors.ForestPrimary,
                                         selectedTextColor = EcoColors.ForestPrimary,
+                                        unselectedIconColor = EcoColors.TextSecondary,
+                                        unselectedTextColor = EcoColors.TextSecondary,
                                         indicatorColor = Color(0xFFBEECDD)
                                     )
                                 )
@@ -106,7 +114,7 @@ class MainActivity : ComponentActivity() {
                             ScannerScreen(
                                 isProcessing = isProcessing,
                                 onImageCaptured = { bmp ->
-                                    vm.classifyBitmap(bmp) { nav.navigate("detail") }
+                                    vm.classifyBitmap(bmp, fromCameraReticle = true) { nav.navigate("detail") }
                                 },
                                 onPickUri = { uri ->
                                     vm.classifyUri(uri) { nav.navigate("detail") }
@@ -119,6 +127,10 @@ class MainActivity : ComponentActivity() {
                         composable("detail") {
                             DetailScreen(
                                 activeScan = activeScan,
+                                messages = messages,
+                                isGenerating = isGenerating,
+                                llamaAvailable = llamaAvailable,
+                                llamaStatusText = llamaStatusText,
                                 onBack = { nav.popBackStack() },
                                 onAskAssistant = { nav.navigate("assistant") }
                             )
@@ -129,8 +141,10 @@ class MainActivity : ComponentActivity() {
                                 messages = messages,
                                 isGenerating = isGenerating,
                                 llamaAvailable = llamaAvailable,
+                                llamaStatusText = llamaStatusText,
+                                isImporting = isImporting,
                                 onAskLlama = { q -> vm.askLlama(q) },
-                                onImportModelUri = { uri -> vm.importLlamaModel(uri) {} }
+                                onImportModelUri = { uri -> vm.importLlamaModel(uri) }
                             )
                         }
                     }

@@ -136,7 +136,10 @@ fun HomeScreen(
                 Button(
                     onClick = onScanClick,
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = EcoColors.ForestAccent),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = EcoColors.ForestAccent,
+                        contentColor = Color.White
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp)

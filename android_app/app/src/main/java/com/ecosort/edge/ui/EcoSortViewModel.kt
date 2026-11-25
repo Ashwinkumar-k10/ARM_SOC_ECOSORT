@@ -47,25 +47,44 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
     private val _llamaAvailable = MutableStateFlow(llama.isModelAvailable())
     val llamaAvailable: StateFlow<Boolean> = _llamaAvailable.asStateFlow()
 
+    private val _llamaStatusText = MutableStateFlow(llama.getStatusMessage())
+    val llamaStatusText: StateFlow<String> = _llamaStatusText.asStateFlow()
+
+    private val _isImporting = MutableStateFlow(false)
+    val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
+
     private val _telemetry = MutableStateFlow(historyStore.readTelemetry(vision.isReady, _llamaAvailable.value))
     val telemetry: StateFlow<SocTelemetry> = _telemetry.asStateFlow()
 
+    init {
+        // Pre-warm Llama 3.2 1B INT8 in background on launch if already on device
+        viewModelScope.launch(Dispatchers.IO) {
+            if (llama.isModelAvailable()) {
+                llama.ensureLoaded()
+                _llamaAvailable.value = llama.isModelAvailable()
+                _llamaStatusText.value = llama.getStatusMessage()
+                refreshTelemetry()
+            }
+        }
+    }
+
     fun refreshTelemetry() {
         _llamaAvailable.value = llama.isModelAvailable()
+        _llamaStatusText.value = llama.getStatusMessage()
         _telemetry.value = historyStore.readTelemetry(vision.isReady, _llamaAvailable.value)
     }
 
-    fun classifyBitmap(bitmap: Bitmap, onDone: () -> Unit) {
+    fun classifyBitmap(bitmap: Bitmap, fromCameraReticle: Boolean = true, onDone: () -> Unit) {
         viewModelScope.launch(Dispatchers.Default) {
             _isProcessing.value = true
-            val pred = vision.classify(bitmap)
+            val pred = vision.classify(bitmap, fromCameraReticle = fromCameraReticle)
             val decision = policy.evaluate(
                 predictedClass = pred.predictedClass,
                 confidence = pred.confidence,
                 entropy = pred.entropy,
                 inferenceMs = pred.inferenceMs
             )
-            _activeScan.value = ActiveScan(bitmap = bitmap, decision = decision)
+            _activeScan.value = ActiveScan(bitmap = pred.croppedBitmap, decision = decision)
             _history.value = historyStore.append(
                 ScanRecord(
                     id = System.currentTimeMillis(),
@@ -82,6 +101,11 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
             _isProcessing.value = false
             refreshTelemetry()
             launch(Dispatchers.Main) { onDone() }
+
+            // Auto-trigger fast preliminary Llama advice immediately upon capture
+            if (llama.isModelAvailable()) {
+                askLlama(null)
+            }
         }
     }
 
@@ -89,7 +113,7 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch(Dispatchers.IO) {
             val bmp = ctx.assets.open("samples/$assetName").use { BitmapFactory.decodeStream(it) }
             if (bmp != null) {
-                classifyBitmap(bmp, onDone)
+                classifyBitmap(bmp, fromCameraReticle = false, onDone = onDone)
             }
         }
     }
@@ -98,7 +122,7 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch(Dispatchers.IO) {
             val bmp = ctx.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
             if (bmp != null) {
-                classifyBitmap(bmp, onDone)
+                classifyBitmap(bmp, fromCameraReticle = false, onDone = onDone)
             }
         }
     }
@@ -123,12 +147,16 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
         onDone()
     }
 
-    fun importLlamaModel(uri: Uri, onResult: (Boolean) -> Unit) {
+    fun importLlamaModel(uri: Uri) {
+        if (_isImporting.value) return
+        _isImporting.value = true
+        _llamaStatusText.value = "Copying & verifying 1.43 GB model..."
         viewModelScope.launch(Dispatchers.IO) {
-            val ok = llama.importModelFromUri(uri)
+            val (ok, msg) = llama.importModelFromUri(uri)
             _llamaAvailable.value = ok
+            _llamaStatusText.value = msg
+            _isImporting.value = false
             refreshTelemetry()
-            launch(Dispatchers.Main) { onResult(ok) }
         }
     }
 
@@ -137,7 +165,7 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
         if (_isGenerating.value) return
 
         val userText = question?.trim().takeIf { !it.isNullOrEmpty() }
-            ?: "Give safe preparation & recycling steps for this ${scan.decision.predictedClass.replace("_", " ")}."
+            ?: "Preliminary safe handling steps for ${formatClassName(scan.decision.predictedClass)}"
 
         val userMsg = ChatMessage(id = System.currentTimeMillis(), isUser = true, text = userText)
         val botId = userMsg.id + 1
@@ -160,6 +188,7 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
                     _chatMessages.value = _chatMessages.value.map {
                         if (it.id == botId) it.copy(isStreaming = false, latencyMs = ms) else it
                     }
+                    _llamaStatusText.value = llama.getStatusMessage()
                     _isGenerating.value = false
                 },
                 onError = { err ->
@@ -170,5 +199,10 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
                 }
             )
         }
+    }
+
+    companion object {
+        fun formatClassName(raw: String): String =
+            raw.split("_").joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
     }
 }
