@@ -23,15 +23,23 @@ git submodule sync && git submodule update --init --recursive
 
 cmake -B cmake-out -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=cmake-out \
   -DEXECUTORCH_BUILD_XNNPACK=ON \
+  -DEXECUTORCH_BUILD_EXTENSION_MODULE=ON \
+  -DEXECUTORCH_BUILD_EXTENSION_TENSOR=ON \
   -DEXECUTORCH_BUILD_EXTENSION_LLM=ON \
   -DEXECUTORCH_BUILD_EXTENSION_LLM_RUNNER=ON \
   -DEXECUTORCH_BUILD_KERNELS_QUANTIZED=ON \
   -DEXECUTORCH_BUILD_KERNELS_OPTIMIZED=ON \
-  -DEXECUTORCH_BUILD_KERNELS_LLM=ON \
-  -DEXECUTORCH_BUILD_LLAMA_RUNNER=ON
+  -DEXECUTORCH_BUILD_KERNELS_LLM=ON
 
-cmake --build cmake-out --target llama_main -j"$(nproc)"
+cmake --build cmake-out -j"$(nproc)" --target install
+
+cmake -B cmake-out/examples/models/llama -S examples/models/llama -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="${PWD}/cmake-out"
+
+cmake --build cmake-out/examples/models/llama --target llama_main -j"$(nproc)"
 
 LLAMA_BIN="${EXECUTORCH_DIR}/cmake-out/examples/models/llama/llama_main"
 echo ""
