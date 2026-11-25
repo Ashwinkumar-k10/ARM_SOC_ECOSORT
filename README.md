@@ -6,13 +6,17 @@
 [![LLM](https://img.shields.io/badge/Llama%203.2%201B%20INT8-133.99%20tok%2Fs%20Prefill-0EA5E9?style=for-the-badge)](models/export_llama_executorch.py)
 [![Compliance](https://img.shields.io/badge/SWM%20Rules%202026-100%25%20(30%2F30)-059669?style=for-the-badge)](policy/swm2026.yaml)
 [![Safety](https://img.shields.io/badge/Battery%20Hazard%20Recall-100%25%20(3%2F3)-DC2626?style=for-the-badge)](src/policy_guard.py)
+[![Demo Video](https://img.shields.io/badge/2--Min%20Demo%20Video-Watch%20on%20Google%20Drive-EA4335?style=for-the-badge&logo=googledrive)](https://drive.google.com/file/d/1KkyhT8QKbGEvBPhP2_ZKsYYaOUvlBH6r/view?usp=sharing)
 
 > **Official Submission — Bharat AI-SoC Challenge 2026–27 (Theme: Edge AI & Embedded Sustainability)**  
-> **100% Air-Gapped Dual-Platform Deployment:** **Raspberry Pi 5 (`aarch64`, 4× Cortex-A76 @ 2.4 GHz)** & **Android Mobile (`arm64-v8a`, Kotlin + Jetpack Compose)** — zero cloud calls, zero `INTERNET` permission.
+> **100% Air-Gapped Dual-Platform Deployment:** **Raspberry Pi 5 (`aarch64`, 4× Cortex-A76 @ 2.4 GHz)** & **Android Mobile (`arm64-v8a`, Kotlin + Jetpack Compose)** — zero cloud calls, zero `INTERNET` permission.  
+> **2-Minute Live Demo Video:** [Watch Full Hardware & Mobile Demo on Google Drive](https://drive.google.com/file/d/1KkyhT8QKbGEvBPhP2_ZKsYYaOUvlBH6r/view?usp=sharing)
 
 ---
 
 ## 1. Live Working Demo Showcase (`A · B · C` Hardware & Mobile Setup)
+
+> **Watch the 2-Minute Synced Hardware & Mobile Walkthrough:** [EcoSort-Edge 2.0 Demo Video (Google Drive)](https://drive.google.com/file/d/1KkyhT8QKbGEvBPhP2_ZKsYYaOUvlBH6r/view?usp=sharing)
 
 ![EcoSort-Edge 2.0 Working Hardware & Mobile Setup](docs/figures/fig5_evidence_gallery.png)
 
