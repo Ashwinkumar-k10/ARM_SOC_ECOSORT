@@ -78,17 +78,12 @@ class LlamaExecuTorchEngine:
         cfg.base.checkpoint = str(ckpt_path)
         cfg.base.params = str(params_path)
         cfg.model.use_kv_cache = True
-        cfg.model.dtype_override = "fp32"
+        cfg.model.dtype_override = "bf16"
         cfg.export.max_seq_length = 256
         cfg.export.max_context_length = 512
 
-        model = Llama2Model(cfg).get_eager_model().to(torch.float32)
+        model = Llama2Model(cfg).get_eager_model().to(torch.bfloat16)
         model.eval()
-        qcfg = torch.ao.quantization.QConfig(
-            activation=torch.ao.quantization.PlaceholderObserver.with_args(dtype=torch.quint8, is_dynamic=True),
-            weight=torch.ao.quantization.default_per_channel_weight_observer,
-        )
-        torch.ao.quantization.quantize_dynamic(model.layers, {torch.nn.Linear: qcfg}, inplace=True)
         self._eager_model = model
         self._tokenizer = get_tokenizer(str(self.tokenizer_path))
 
@@ -213,7 +208,7 @@ class LlamaExecuTorchEngine:
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
             answer = self._tokenizer.decode(gen).strip()
             tok_s = len(gen) / max(elapsed_ms / 1000.0, 1e-4)
-            runtime_label = "Llama 3.2 1B INT8 (fbgemm Host)"
+            runtime_label = "Llama 3.2 1B BF16 (10-Thread Host)"
 
         res = {
             "answer": answer,
