@@ -21,7 +21,7 @@ Cloud-dependent smart bins fail in real municipal environments due to network dr
 
 ---
 
-## 2. IEEE System Architecture (Raspberry Pi 5 & Android Mobile)
+## 2. System Architecture (Raspberry Pi 5 & Android Mobile)
 
 ![EcoSort-Edge 2.0 IEEE Dual-Platform Architecture](docs/ecosort_ieee_dual_architecture.png)
 
