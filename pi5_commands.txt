@@ -1,0 +1,67 @@
+========================================================================
+EcoSort-Edge 2.0 — Raspberry Pi 5 CLI Benchmark & Check Commands
+========================================================================
+
+1. SSH into Raspberry Pi 5 (from Windows PowerShell):
+ssh pi5@pi-5.local
+
+------------------------------------------------------------------------
+2. First-Time Python Environment Setup (run inside ~/ecosort_arm on Pi 5):
+------------------------------------------------------------------------
+cd ~/ecosort_arm
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+------------------------------------------------------------------------
+3. Fast 10-Image Benchmark (Vision INT8 + SWM 2026 PolicyGuard + Pi 5 SoC Telemetry):
+------------------------------------------------------------------------
+python src/cli_check.py --batch10 --no-llama
+
+------------------------------------------------------------------------
+4. Build ExecuTorch C++ Llama Runner (Arm Cortex-A76 XNNPACK) & Run Full 10-Image Report:
+------------------------------------------------------------------------
+bash setup_pi5_llama.sh
+export EXECUTORCH_LLAMA_MAIN=~/executorch/cmake-out/examples/models/llama/llama_main
+python src/cli_check.py --batch10
+
+------------------------------------------------------------------------
+5. Single-Image CLI Checks:
+------------------------------------------------------------------------
+# Hazardous battery / e-waste check (fast vision + policy only):
+python src/cli_check.py --image benchmark_30/item_01_battery_01.jpg --no-llama
+
+# Single image with Llama 3.2 1B INT8 safety advice:
+python src/cli_check.py --image benchmark_30/item_01_battery_01.jpg
+
+# Single image with custom follow-up question:
+python src/cli_check.py --image benchmark_30/item_25_plastic_bottle_02.jpg --question "How to prep this?"
+
+------------------------------------------------------------------------
+6. Real-Time USB Webcam Check on Pi 5:
+------------------------------------------------------------------------
+# Auto-detects Desktop window or Headless SSH terminal:
+python src/pi5_usb_cam_check.py --cam 0
+
+# Force headless SSH terminal logging (with FPS & Pi 5 temp/volts):
+python src/pi5_usb_cam_check.py --cam 0 --headless
+
+# Real-time USB webcam + Llama 3.2 1B INT8 advice:
+python src/pi5_usb_cam_check.py --cam 0 --with-llama
+
+------------------------------------------------------------------------
+7. Web Dashboard on Pi 5 (View from Laptop Browser over Ethernet):
+------------------------------------------------------------------------
+python src/ui_dashboard.py --port 8080 --no-browser
+# Then open in your Windows browser: http://pi-5.local:8080
+
+------------------------------------------------------------------------
+8. Full 30-Image Benchmark (optional):
+------------------------------------------------------------------------
+python src/cli_check.py --batch30
+
+------------------------------------------------------------------------
+9. Copy JSON Report Back to Windows PC (run in Windows PowerShell):
+------------------------------------------------------------------------
+scp pi5@pi-5.local:~/ecosort_arm/benchmarks/pi5_cli_10_report.json "f:\HACKATHONS\ARM\arm_submission\benchmarks\"
