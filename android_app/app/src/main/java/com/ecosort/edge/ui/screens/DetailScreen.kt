@@ -25,9 +25,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecosort.edge.domain.model.ActiveScan
+import com.ecosort.edge.domain.model.AppLanguage
 import com.ecosort.edge.domain.model.ChatMessage
 import com.ecosort.edge.domain.model.StreamType
-import com.ecosort.edge.ui.EcoSortViewModel
+import com.ecosort.edge.ui.AppLocalization
+import com.ecosort.edge.ui.AppStrings
 import com.ecosort.edge.ui.theme.EcoColors
 
 @Composable
@@ -37,19 +39,22 @@ fun DetailScreen(
     isGenerating: Boolean,
     llamaAvailable: Boolean,
     llamaStatusText: String,
+    language: AppLanguage,
+    strings: AppStrings,
     onBack: () -> Unit,
     onAskAssistant: () -> Unit
 ) {
     if (activeScan == null) {
         Box(modifier = Modifier.fillMaxSize().background(EcoColors.Canvas), contentAlignment = Alignment.Center) {
-            Text("No item selected", color = EcoColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Text(strings.noItemSelected, color = EcoColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
         }
         return
     }
 
     val dec = activeScan.decision
     val binColor = Color(dec.colorHex)
-    val cleanObjName = EcoSortViewModel.formatClassName(dec.predictedClass)
+    val cleanObjName = AppLocalization.localizedClassName(dec.predictedClass, language)
+    val localBinName = AppLocalization.localizedBinName(dec.stream, dec.binName, language)
     val latestBotMsg = messages.lastOrNull { !it.isUser }
 
     Column(
@@ -65,7 +70,7 @@ fun DetailScreen(
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back", tint = EcoColors.TextPrimary)
             }
-            Text("Sorting Result", color = EcoColors.TextPrimary, style = MaterialTheme.typography.headlineMedium)
+            Text(strings.sortingResult, color = EcoColors.TextPrimary, style = MaterialTheme.typography.headlineMedium)
         }
 
         // Bold Colored Bin Card + Clear Object Name (Apple-Minimalist Visual)
@@ -101,13 +106,13 @@ fun DetailScreen(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        dec.binName,
+                        localBinName,
                         color = Color.White.copy(alpha = 0.95f),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        "${(dec.confidence * 100).toInt()}% confidence · ${"%.1f".format(dec.inferenceMs)} ms",
+                        "${(dec.confidence * 100).toInt()}% ${strings.confidenceLabel} · ${"%.1f".format(dec.inferenceMs)} ms",
                         color = Color.White.copy(alpha = 0.85f),
                         fontSize = 12.sp
                     )
@@ -131,14 +136,15 @@ fun DetailScreen(
                         .clip(RoundedCornerShape(14.dp))
                 )
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Reticle Focus Crop", color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(strings.reticleCrop, color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     Text(
-                        "Status: ${dec.status.replace("_", " ")} · H = ${"%.2f".format(dec.entropy)}",
+                        "${strings.statusLabel}: ${dec.status.replace("_", " ")} · H = ${"%.2f".format(dec.entropy)}",
                         color = EcoColors.TextSecondary,
                         fontSize = 12.sp
                     )
-                    if (dec.tipEn.isNotBlank()) {
-                        Text(dec.tipEn, color = EcoColors.TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
+                    val tip = if (language == AppLanguage.KN && dec.tipKn.isNotBlank()) dec.tipKn else dec.tipEn
+                    if (tip.isNotBlank()) {
+                        Text(tip, color = EcoColors.TextPrimary, fontSize = 13.sp, lineHeight = 18.sp)
                     }
                 }
             }
@@ -150,7 +156,7 @@ fun DetailScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    "Camera-Free Sanitary Privacy Mode Active. Wrap securely before disposal.",
+                    strings.sanitaryPrivacyMsg,
                     color = EcoColors.TextPrimary,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(16.dp)
@@ -172,7 +178,7 @@ fun DetailScreen(
                 ) {
                     Icon(Icons.Outlined.WarningAmber, contentDescription = null, tint = EcoColors.HazardRed)
                     Text(
-                        "Fire-Hazard Interlock: Keep dry, tape terminals, and place only in the Red Bin.",
+                        strings.fireHazardBanner,
                         color = Color(0xFF93000A),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -196,7 +202,7 @@ fun DetailScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = EcoColors.ForestPrimary, modifier = Modifier.size(18.dp))
-                        Text("On-Device Llama 3.2 Steps", color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(strings.llamaStepsTitle, color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
                     if (latestBotMsg?.latencyMs != null) {
                         Text("${latestBotMsg.latencyMs} ms", color = EcoColors.TextSecondary, fontSize = 11.sp)
@@ -205,7 +211,7 @@ fun DetailScreen(
 
                 when {
                     !llamaAvailable -> Text(
-                        "Llama 3.2 1B INT8 not imported yet ($llamaStatusText). Tap below to import it once.",
+                        "${strings.llamaNotImported} ($llamaStatusText)",
                         color = EcoColors.TextSecondary,
                         fontSize = 13.sp
                     )
@@ -214,7 +220,7 @@ fun DetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = EcoColors.ForestPrimary)
-                        Text("Generating safe preparation steps...", color = EcoColors.TextSecondary, fontSize = 13.sp)
+                        Text(strings.generatingSteps, color = EcoColors.TextSecondary, fontSize = 13.sp)
                     }
                     latestBotMsg != null -> Text(
                         latestBotMsg.text,
@@ -234,7 +240,7 @@ fun DetailScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Statutory Bin Labels (SWM 2026)", color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text(strings.statutoryLabelsTitle, color = EcoColors.TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 dec.labels.forEach { (lang, label) ->
                     Text("${lang.uppercase()}: $label", color = EcoColors.TextSecondary, fontSize = 12.sp)
                 }
@@ -251,7 +257,7 @@ fun DetailScreen(
             Icon(Icons.Outlined.AutoAwesome, contentDescription = null, tint = Color.White)
             Spacer(Modifier.width(10.dp))
             Text(
-                if (llamaAvailable) "Ask Follow-Up Question" else "Import Llama 3.2 INT8",
+                if (llamaAvailable) strings.askFollowUp else strings.importLlamaBtn,
                 color = Color.White,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold

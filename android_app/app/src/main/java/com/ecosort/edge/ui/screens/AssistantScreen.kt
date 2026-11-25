@@ -25,8 +25,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecosort.edge.domain.model.ActiveScan
+import com.ecosort.edge.domain.model.AppLanguage
 import com.ecosort.edge.domain.model.ChatMessage
-import com.ecosort.edge.ui.EcoSortViewModel
+import com.ecosort.edge.ui.AppLocalization
+import com.ecosort.edge.ui.AppStrings
 import com.ecosort.edge.ui.theme.EcoColors
 
 @Composable
@@ -37,6 +39,8 @@ fun AssistantScreen(
     llamaAvailable: Boolean,
     llamaStatusText: String,
     isImporting: Boolean,
+    language: AppLanguage,
+    strings: AppStrings,
     onAskLlama: (String?) -> Unit,
     onImportModelUri: (android.net.Uri) -> Unit
 ) {
@@ -72,7 +76,7 @@ fun AssistantScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Eco Assistant", color = EcoColors.TextPrimary, style = MaterialTheme.typography.headlineMedium)
+                Text(strings.ecoAssistant, color = EcoColors.TextPrimary, style = MaterialTheme.typography.headlineMedium)
                 Surface(
                     shape = CircleShape,
                     color = if (llamaAvailable) EcoColors.EmeraldBg.copy(alpha = 0.35f) else EcoColors.SurfaceCard,
@@ -87,7 +91,7 @@ fun AssistantScreen(
                             Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = EcoColors.EmeraldBadge, modifier = Modifier.size(14.dp))
                         }
                         Text(
-                            if (llamaAvailable) "Llama INT8 Ready" else "Model Needed",
+                            if (llamaAvailable) strings.llamaReadyBadge else strings.modelNeededBadge,
                             color = EcoColors.TextPrimary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
@@ -105,7 +109,7 @@ fun AssistantScreen(
                     border = BorderStroke(1.dp, Color(activeScan.decision.colorHex))
                 ) {
                     Text(
-                        "${EcoSortViewModel.formatClassName(activeScan.decision.predictedClass)} → ${activeScan.decision.binName}",
+                        "${AppLocalization.localizedClassName(activeScan.decision.predictedClass, language)} → ${AppLocalization.localizedBinName(activeScan.decision.stream, activeScan.decision.binName, language)}",
                         color = EcoColors.TextPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -113,7 +117,7 @@ fun AssistantScreen(
                     )
                 }
             } else {
-                Text("Scan an item first to ground Llama 3.2 1B INT8.", color = EcoColors.TextSecondary, fontSize = 13.sp)
+                Text(strings.scanFirstHint, color = EcoColors.TextSecondary, fontSize = 13.sp)
             }
         }
 
@@ -127,7 +131,7 @@ fun AssistantScreen(
                 modifier = Modifier.padding(16.dp).fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Import On-Device Llama 3.2 1B INT8", color = EcoColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
+                    Text(strings.importCardTitle, color = EcoColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
                     Text(
                         llamaStatusText,
                         color = EcoColors.TextSecondary,
@@ -141,11 +145,11 @@ fun AssistantScreen(
                         if (isImporting) {
                             CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
                             Spacer(Modifier.width(10.dp))
-                            Text("Copying & Verifying...")
+                            Text(strings.copyingVerifying, color = Color.White)
                         } else {
-                            Icon(Icons.Outlined.UploadFile, contentDescription = null)
+                            Icon(Icons.Outlined.UploadFile, contentDescription = null, tint = Color.White)
                             Spacer(Modifier.width(8.dp))
-                            Text("Select llama3_2_1b_int8.pte")
+                            Text(strings.selectModelFile, color = Color.White)
                         }
                     }
                 }
@@ -171,7 +175,7 @@ fun AssistantScreen(
                     ) {
                         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                if (msg.text.isEmpty() && msg.isStreaming) "Thinking on-device..." else msg.text,
+                                if (msg.text.isEmpty() && msg.isStreaming) strings.thinkingOnDevice else msg.text,
                                 color = if (msg.isUser) Color.White else EcoColors.TextPrimary,
                                 fontSize = 14.sp,
                                 lineHeight = 20.sp
@@ -199,9 +203,9 @@ fun AssistantScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(
-                    "How do I prep this?",
-                    "Why this bin?",
-                    "Environmental impact?"
+                    strings.promptPrep,
+                    strings.promptWhyBin,
+                    strings.promptImpact
                 ).forEach { prompt ->
                     Surface(
                         shape = CircleShape,
@@ -225,7 +229,7 @@ fun AssistantScreen(
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = { inputText = it },
-                    placeholder = { Text("Ask about recycling or disposal...", color = EcoColors.TextSecondary, fontSize = 13.sp) },
+                    placeholder = { Text(strings.askPlaceholder, color = EcoColors.TextSecondary, fontSize = 13.sp) },
                     singleLine = true,
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(

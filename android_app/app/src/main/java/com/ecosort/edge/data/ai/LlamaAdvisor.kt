@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.os.SystemClock
+import com.ecosort.edge.domain.model.AppLanguage
 import com.ecosort.edge.domain.model.PolicyDecision
 import com.ecosort.edge.domain.model.StreamType
 import org.pytorch.executorch.extension.llm.LlmCallback
@@ -89,6 +90,7 @@ class LlamaAdvisor(private val context: Context) {
     fun generate(
         decision: PolicyDecision,
         userQuestion: String?,
+        language: AppLanguage = AppLanguage.EN,
         onToken: (String) -> Unit,
         onComplete: (Long) -> Unit,
         onError: (String) -> Unit
@@ -98,7 +100,7 @@ class LlamaAdvisor(private val context: Context) {
             return
         }
 
-        val prompt = buildPrompt(decision, userQuestion)
+        val prompt = buildPrompt(decision, userQuestion, language)
         val t0 = SystemClock.elapsedRealtime()
         val module = llmModule ?: return
 
@@ -124,8 +126,8 @@ class LlamaAdvisor(private val context: Context) {
         }
     }
 
-    private fun buildPrompt(decision: PolicyDecision, userQuestion: String?): String {
-        val item = decision.predictedClass.replace("_", " ")
+    private fun buildPrompt(decision: PolicyDecision, userQuestion: String?, language: AppLanguage): String {
+        val item = if (decision.predictedClass == "battery") "electronic waste battery" else decision.predictedClass.replace("_", " ")
         val binLabel = if (decision.stream == StreamType.SPECIAL_CARE) {
             "Red Bin (Special-Care Collection)"
         } else {
@@ -135,12 +137,19 @@ class LlamaAdvisor(private val context: Context) {
         val task = when {
             !userQuestion.isNullOrBlank() -> userQuestion.trim()
             decision.stream == StreamType.SPECIAL_CARE ->
-                "List 2 brief safety steps before placing this battery in the Red Bin (keep dry, tape terminals, never crush)."
+                "List 2 brief safety steps before placing this item in the Red Bin (keep dry, tape terminals, never crush)."
             else ->
                 "List 2 brief steps to prepare this item for its assigned bin."
         }
 
-        val sys = "You are EcoSort-Edge, a household recycling helper. Reply directly in under 35 words without repeating the prompt."
+        val langInstruction = when (language) {
+            AppLanguage.EN -> "Reply in English."
+            AppLanguage.TA -> "Reply in simple Tamil (தமிழ்)."
+            AppLanguage.KN -> "Reply in simple Kannada (ಕನ್ನಡ)."
+            AppLanguage.HI -> "Reply in simple Hindi (हिन्दी)."
+        }
+
+        val sys = "You are EcoSort-Edge, a household recycling helper. $langInstruction Reply directly in under 35 words without repeating the prompt."
         val usr = "Item: $item. Assigned Bin: $binLabel. $task"
 
         return "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n" +

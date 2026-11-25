@@ -38,11 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.ecosort.edge.ui.AppStrings
 import com.ecosort.edge.ui.theme.EcoColors
 
 @Composable
 fun ScannerScreen(
     isProcessing: Boolean,
+    strings: AppStrings,
     onImageCaptured: (Bitmap) -> Unit,
     onPickUri: (android.net.Uri) -> Unit,
     onPickSample: (String) -> Unit
@@ -107,9 +109,9 @@ fun ScannerScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Camera access needed for live scanning", color = Color.White, fontSize = 15.sp)
+                Text(strings.cameraPermNeeded, color = Color.White, fontSize = 15.sp)
                 Button(onClick = { permLauncher.launch(Manifest.permission.CAMERA) }) {
-                    Text("Grant Camera Permission")
+                    Text(strings.grantCameraPerm, color = Color.White)
                 }
             }
         }
@@ -140,7 +142,7 @@ fun ScannerScreen(
             modifier = Modifier.align(Alignment.TopCenter).padding(top = 18.dp)
         ) {
             Text(
-                if (isProcessing) "Running ExecuTorch INT8..." else "Align waste item inside frame",
+                if (isProcessing) strings.runningExecuTorch else strings.alignWasteItem,
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
@@ -163,10 +165,10 @@ fun ScannerScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(
-                    "Battery" to "item_01_battery_01.jpg",
-                    "Plastic" to "item_25_plastic_bottle_02.jpg",
-                    "Food" to "item_07_food_waste_01.jpg",
-                    "Cardboard" to "item_04_cardboard_01.jpg"
+                    strings.sampleBattery to "item_01_battery_01.jpg",
+                    strings.samplePlastic to "item_25_plastic_bottle_02.jpg",
+                    strings.sampleFood to "item_07_food_waste_01.jpg",
+                    strings.sampleCardboard to "item_04_cardboard_01.jpg"
                 ).forEach { (label, file) ->
                     Surface(
                         shape = CircleShape,
@@ -175,7 +177,7 @@ fun ScannerScreen(
                         modifier = Modifier.clickable(enabled = !isProcessing) { onPickSample(file) }
                     ) {
                         Text(
-                            "Test: $label",
+                            "${strings.testPrefix}: $label",
                             color = Color.White,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)

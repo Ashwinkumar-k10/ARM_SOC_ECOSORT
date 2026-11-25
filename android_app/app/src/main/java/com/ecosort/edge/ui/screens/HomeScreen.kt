@@ -4,9 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,21 +19,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ecosort.edge.R
+import com.ecosort.edge.domain.model.AppLanguage
 import com.ecosort.edge.domain.model.ScanRecord
 import com.ecosort.edge.domain.model.SocTelemetry
 import com.ecosort.edge.domain.model.StreamType
-import com.ecosort.edge.ui.EcoSortViewModel
+import com.ecosort.edge.ui.AppLocalization
+import com.ecosort.edge.ui.AppStrings
 import com.ecosort.edge.ui.theme.EcoColors
 
 @Composable
 fun HomeScreen(
     history: List<ScanRecord>,
     telemetry: SocTelemetry,
+    language: AppLanguage,
+    strings: AppStrings,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onScanClick: () -> Unit,
     onSanitaryClick: () -> Unit,
     onAssistantClick: () -> Unit
@@ -57,21 +65,31 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ecosort_logo),
-                        contentDescription = "EcoSort Logo",
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFFF6F5F3),
+                        border = BorderStroke(1.dp, EcoColors.Border),
+                        modifier = Modifier.size(54.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ecosort_logo),
+                            contentDescription = "EcoSort Logo",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(4.dp)
+                        )
+                    }
                     Column {
-                        Text("EcoSort-Edge", style = MaterialTheme.typography.headlineLarge, fontSize = 22.sp)
-                        Text("SWM 2026 On-Device Segregation", style = MaterialTheme.typography.bodyMedium)
+                        Text("EcoSort-Edge", style = MaterialTheme.typography.headlineLarge, fontSize = 21.sp)
+                        Text(strings.appSubtitle, style = MaterialTheme.typography.bodyMedium, fontSize = 12.sp)
                     }
                 }
+                Spacer(Modifier.width(8.dp))
                 Surface(
                     shape = CircleShape,
                     color = EcoColors.Surface,
@@ -79,7 +97,7 @@ fun HomeScreen(
                     modifier = Modifier.clickable { showTelemetry = !showTelemetry }
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -89,7 +107,35 @@ fun HomeScreen(
                                 .clip(CircleShape)
                                 .background(EcoColors.EmeraldBadge)
                         )
-                        Text("Offline AI", style = MaterialTheme.typography.labelMedium, color = EcoColors.TextPrimary)
+                        Text(strings.offlineAi, style = MaterialTheme.typography.labelMedium, color = EcoColors.TextPrimary)
+                    }
+                }
+            }
+        }
+
+        // Language Selector Bar (English / தமிழ் / ಕನ್ನಡ / हिन्दी)
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AppLanguage.entries.forEach { lang ->
+                    val selected = lang == language
+                    Surface(
+                        shape = CircleShape,
+                        color = if (selected) EcoColors.ForestPrimary else EcoColors.Surface,
+                        border = BorderStroke(1.dp, if (selected) EcoColors.ForestPrimary else EcoColors.Border),
+                        modifier = Modifier.clickable { onSelectLanguage(lang) }
+                    ) {
+                        Text(
+                            lang.nativeName,
+                            color = if (selected) Color.White else EcoColors.TextPrimary,
+                            fontSize = 12.sp,
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
+                        )
                     }
                 }
             }
@@ -105,10 +151,10 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Arm SoC Telemetry (Live)", style = MaterialTheme.typography.titleMedium)
+                        Text(strings.telemetryTitle, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Vision INT8: ${if (telemetry.visionReady) "Ready (2.41 MB)" else "Error"} · " +
-                                "Llama 3.2 INT8: ${if (telemetry.llamaReady) "Ready" else "Import Required"}",
+                            "${strings.visionLabel}: ${if (telemetry.visionReady) strings.ready else strings.error} · " +
+                                "${strings.llamaLabel}: ${if (telemetry.llamaReady) strings.ready.substringBefore(" ") else strings.importRequired}",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
@@ -134,13 +180,13 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Household Segregation Impact", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                        Text("Air-Gapped", color = EcoColors.EmeraldBg, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        Text(strings.impactTitle, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                        Text(strings.airGapped, color = EcoColors.EmeraldBg, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        ImpactStat("Total Scans", totalScans.toString())
-                        ImpactStat("Sorted Clean", divertedCount.toString())
-                        ImpactStat("Hazards Caught", hazardCount.toString())
+                        ImpactStat(strings.totalScans, totalScans.toString())
+                        ImpactStat(strings.sortedClean, divertedCount.toString())
+                        ImpactStat(strings.hazardsCaught, hazardCount.toString())
                     }
                 }
             }
@@ -162,19 +208,19 @@ fun HomeScreen(
                 ) {
                     Icon(Icons.Outlined.CameraAlt, contentDescription = null, tint = Color.White)
                     Spacer(Modifier.width(10.dp))
-                    Text("Scan Waste Item", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(strings.scanWasteItem, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     QuickActionCard(
-                        title = "Sanitary Path",
-                        subtitle = "Camera-free privacy",
+                        title = strings.sanitaryPath,
+                        subtitle = strings.cameraFreePrivacy,
                         icon = Icons.Outlined.PrivacyTip,
                         modifier = Modifier.weight(1f),
                         onClick = onSanitaryClick
                     )
                     QuickActionCard(
-                        title = "Eco Assistant",
+                        title = strings.ecoAssistant,
                         subtitle = "Llama 3.2 INT8",
                         icon = Icons.Outlined.AutoAwesome,
                         modifier = Modifier.weight(1f),
@@ -186,7 +232,7 @@ fun HomeScreen(
 
         // Recent Activity
         item {
-            Text("Recent Sorting Activity", style = MaterialTheme.typography.titleMedium)
+            Text(strings.recentActivity, style = MaterialTheme.typography.titleMedium)
         }
 
         if (history.isEmpty()) {
@@ -198,7 +244,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "No items scanned yet. Tap 'Scan Waste Item' to classify with ExecuTorch INT8.",
+                        strings.noScansYet,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(18.dp)
                     )
@@ -225,11 +271,15 @@ fun HomeScreen(
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                EcoSortViewModel.formatClassName(rec.predictedClass),
+                                AppLocalization.localizedClassName(rec.predictedClass, language),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontSize = 14.sp
                             )
-                            Text(rec.binName, style = MaterialTheme.typography.bodyMedium, fontSize = 12.sp)
+                            Text(
+                                AppLocalization.localizedBinName(rec.stream, rec.binName, language),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontSize = 12.sp
+                            )
                         }
                         Text(
                             "${(rec.confidence * 100).toInt()}% · ${rec.inferenceMs.toInt()}ms",

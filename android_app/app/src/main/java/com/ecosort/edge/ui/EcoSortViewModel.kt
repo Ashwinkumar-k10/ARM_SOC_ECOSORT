@@ -11,6 +11,7 @@ import com.ecosort.edge.data.ai.VisionClassifier
 import com.ecosort.edge.data.storage.ScanHistoryStore
 import com.ecosort.edge.domain.guard.PolicyGuard
 import com.ecosort.edge.domain.model.ActiveScan
+import com.ecosort.edge.domain.model.AppLanguage
 import com.ecosort.edge.domain.model.ChatMessage
 import com.ecosort.edge.domain.model.ScanRecord
 import com.ecosort.edge.domain.model.SocTelemetry
@@ -28,6 +29,12 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
     private val policy = PolicyGuard(ctx)
     private val llama = LlamaAdvisor(ctx)
     private val historyStore = ScanHistoryStore(ctx)
+
+    private val prefs = ctx.getSharedPreferences("ecosort_prefs", android.content.Context.MODE_PRIVATE)
+    private val _language = MutableStateFlow(
+        AppLanguage.entries.find { it.code == prefs.getString("app_language", "en") } ?: AppLanguage.EN
+    )
+    val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
     private val _history = MutableStateFlow(historyStore.load())
     val history: StateFlow<List<ScanRecord>> = _history.asStateFlow()
@@ -66,6 +73,11 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
                 refreshTelemetry()
             }
         }
+    }
+
+    fun setLanguage(lang: AppLanguage) {
+        _language.value = lang
+        prefs.edit().putString("app_language", lang.code).apply()
     }
 
     fun refreshTelemetry() {
@@ -178,6 +190,7 @@ class EcoSortViewModel(application: Application) : AndroidViewModel(application)
             llama.generate(
                 decision = scan.decision,
                 userQuestion = question,
+                language = _language.value,
                 onToken = { token ->
                     acc.append(token)
                     _chatMessages.value = _chatMessages.value.map {

@@ -2,6 +2,13 @@ package com.ecosort.edge.domain.model
 
 import android.graphics.Bitmap
 
+enum class AppLanguage(val code: String, val nativeName: String) {
+    EN("en", "English"),
+    TA("ta", "தமிழ்"),
+    KN("kn", "ಕನ್ನಡ"),
+    HI("hi", "हिन्दी")
+}
+
 enum class StreamType {
     WET,
     DRY,

@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.ecosort.edge.ui.AppLocalization
 import com.ecosort.edge.ui.EcoSortViewModel
 import com.ecosort.edge.ui.screens.AssistantScreen
 import com.ecosort.edge.ui.screens.DetailScreen
@@ -45,6 +46,8 @@ class MainActivity : ComponentActivity() {
                 val llamaStatusText by vm.llamaStatusText.collectAsState()
                 val isImporting by vm.isImporting.collectAsState()
                 val telemetry by vm.telemetry.collectAsState()
+                val language by vm.language.collectAsState()
+                val strings = AppLocalization.stringsFor(language)
 
                 Scaffold(
                     containerColor = EcoColors.Canvas,
@@ -54,8 +57,8 @@ class MainActivity : ComponentActivity() {
                                 NavigationBarItem(
                                     selected = route == "home",
                                     onClick = { nav.navigate("home") { launchSingleTop = true } },
-                                    icon = { Icon(Icons.Outlined.Home, contentDescription = "Home") },
-                                    label = { Text("Home") },
+                                    icon = { Icon(Icons.Outlined.Home, contentDescription = strings.navHome) },
+                                    label = { Text(strings.navHome) },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = EcoColors.ForestPrimary,
                                         selectedTextColor = EcoColors.ForestPrimary,
@@ -67,8 +70,8 @@ class MainActivity : ComponentActivity() {
                                 NavigationBarItem(
                                     selected = route == "scanner",
                                     onClick = { nav.navigate("scanner") { launchSingleTop = true } },
-                                    icon = { Icon(Icons.Outlined.CameraAlt, contentDescription = "Scan") },
-                                    label = { Text("Scan") },
+                                    icon = { Icon(Icons.Outlined.CameraAlt, contentDescription = strings.navScan) },
+                                    label = { Text(strings.navScan) },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = EcoColors.ForestPrimary,
                                         selectedTextColor = EcoColors.ForestPrimary,
@@ -80,8 +83,8 @@ class MainActivity : ComponentActivity() {
                                 NavigationBarItem(
                                     selected = route == "assistant",
                                     onClick = { nav.navigate("assistant") { launchSingleTop = true } },
-                                    icon = { Icon(Icons.Outlined.AutoAwesome, contentDescription = "Assistant") },
-                                    label = { Text("Assistant") },
+                                    icon = { Icon(Icons.Outlined.AutoAwesome, contentDescription = strings.navAssistant) },
+                                    label = { Text(strings.navAssistant) },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = EcoColors.ForestPrimary,
                                         selectedTextColor = EcoColors.ForestPrimary,
@@ -103,6 +106,9 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 history = history,
                                 telemetry = telemetry,
+                                language = language,
+                                strings = strings,
+                                onSelectLanguage = { vm.setLanguage(it) },
                                 onScanClick = { nav.navigate("scanner") },
                                 onSanitaryClick = {
                                     vm.triggerSanitaryOverride { nav.navigate("detail") }
@@ -113,6 +119,7 @@ class MainActivity : ComponentActivity() {
                         composable("scanner") {
                             ScannerScreen(
                                 isProcessing = isProcessing,
+                                strings = strings,
                                 onImageCaptured = { bmp ->
                                     vm.classifyBitmap(bmp, fromCameraReticle = true) { nav.navigate("detail") }
                                 },
@@ -131,6 +138,8 @@ class MainActivity : ComponentActivity() {
                                 isGenerating = isGenerating,
                                 llamaAvailable = llamaAvailable,
                                 llamaStatusText = llamaStatusText,
+                                language = language,
+                                strings = strings,
                                 onBack = { nav.popBackStack() },
                                 onAskAssistant = { nav.navigate("assistant") }
                             )
@@ -143,6 +152,8 @@ class MainActivity : ComponentActivity() {
                                 llamaAvailable = llamaAvailable,
                                 llamaStatusText = llamaStatusText,
                                 isImporting = isImporting,
+                                language = language,
+                                strings = strings,
                                 onAskLlama = { q -> vm.askLlama(q) },
                                 onImportModelUri = { uri -> vm.importLlamaModel(uri) }
                             )
